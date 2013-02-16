@@ -78,6 +78,7 @@ if __name__ == '__main__':
     from winged_edge import *
     from adjacency import *
     from polygon import *
+    from binaryblob import *
 
     tris = list(quads2tris(cube_faces))
     mapping, reverse_mapping, v, i = interleave((cube_vertices, cube_normals, cube_tangents, cube_texcoords), tris)
@@ -85,4 +86,12 @@ if __name__ == '__main__':
     edges = winged_edge(tris)
     adjtri = list(build_adjacency_triangles(i, mapping, reverse_mapping, edges))
 
-    print v, adjtri
+    attrs = [
+        (4, float, False, 32, (0.0, 0.0, 0.0, 1.0)),
+        (4, float, False, 32, tuple([0.0] * 4)),
+        (4, float, False, 32, tuple([0.0] * 4)),
+        (4, float, False, 32, tuple([0.0] * 4))
+        ]
+
+    blob_vertex_save('cube.vbo', attrs, v)
+    blob_index_save('cube.ibo', adjtri)
