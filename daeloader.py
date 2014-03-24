@@ -44,9 +44,15 @@ def process_primitives(element):
 
     count = int(element.attrib['count'])
     material = element.attrib['material'] if 'material' in element.attrib else ''
-    inputs = [(e.attrib['semantic'], (int(e.attrib['offset']), e.attrib['source'][1:]))
-                for e in element.findall('%s' % dae('input'))]
-    stride = len(inputs)
+
+    def semantic_name(e):
+        if 'set' in e.attrib:
+            return e.attrib['semantic'] + e.attrib['set']
+        return e.attrib['semantic'] + ('0' if e.attrib['semantic'][0:3] == 'TEX' else '')
+
+    inputs = [(semantic_name(e), (int(e.attrib['offset']), e.attrib['source'][1:]))
+                    for e in element.findall('%s' % dae('input'))]
+    stride = 1 + max(offset for (semantic, (offset, source)) in inputs)
 
     vcounts = element.find('%s' % dae('vcount'))
     vcounts = map(int, vcounts.text.split()) if vcounts is not None else None
@@ -55,7 +61,10 @@ def process_primitives(element):
     p = map(int, element.find('%s' % dae('p')).text.split())
     assert len(p) % stride == 0
 
-    tuples = [tuple(p[i*stride:(i+1)*stride]) for i in range(len(p)/stride)]
+    def index_tuple(tup):
+        return tuple(tup[offset] for (semantic, (offset, source)) in inputs)
+
+    tuples = [index_tuple(p[i*stride:(i+1)*stride]) for i in range(len(p)/stride)]
 
     def group_by_vcount():
         idx = 0
@@ -86,7 +95,7 @@ def process_geom(geom):
     vert_pos = mesh.find('%s/%s[@semantic=\'POSITION\']' % (dae('vertices'), dae('input')))
     vert_pos_source = vert_pos.attrib['source'][1:]
 
-    inputs = sorted(prims[0][1], key=lambda (semantic, (index, source)): index)
+    inputs = prims[0][1]
 
     semantics = tuple(semantic if semantic != 'VERTEX' else 'POSITION' for (semantic, (index, source)) in inputs)
     verts = tuple(sources[source if semantic != 'VERTEX' else vert_pos_source][1] for (semantic, (index, source)) in inputs)

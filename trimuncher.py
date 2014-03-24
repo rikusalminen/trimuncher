@@ -10,7 +10,7 @@ from daeloader import daeload
 
 def parse_vertex_format(fmt_string):
     trim = ''.join(c for c in fmt_string if not c.isspace())
-    regex = re.compile(r'([A-Z_]+):(\d)([uif])(\d{1,2})?')
+    regex = re.compile(r'([A-Z_]+\d*):(\d)([uif])(\d{1,2})?')
     matches = [regex.match(s) for s in trim.split(',')]
 
     if any(match is None for match in matches):
@@ -38,7 +38,7 @@ def vertex_shuffle(verts, order):
     return [tuple(v[i] if i is not None else () for i in order) for v in verts]
 
 if __name__ == '__main__':
-    default_fmt = 'POSITION:3f32,NORMAL:3f32,TEXCOORD:2f32'
+    default_fmt = 'POSITION:3f32,NORMAL:3f32,TEXCOORD0:2f32'
 
     from argparse import ArgumentParser
     parser = ArgumentParser(
